@@ -24,7 +24,21 @@ function! QFList(linenr)
     let l:entry = b:qflist[a:linenr - 1]
 
     if l:entry.valid
-        execute 'pedit +' . l:entry.lnum . ' ' . bufname(l:entry.bufnr)
+        let qf_win_id = win_getid(winnr())
+
+        if g:quickr_preview_position == 'left'
+            vsplit
+        end
+        if g:quickr_preview_position == 'right'
+            belowright vsplit
+        end
+
+        let extra = ''
+        if g:quickr_preview_position == 'below'
+            let extra = 'botright '
+        endif
+
+        execute extra . 'pedit +' . l:entry.lnum . ' ' . bufname(l:entry.bufnr)
 
         " Jump to preview window
         wincmd p
@@ -44,8 +58,14 @@ function! QFList(linenr)
         execute 'sign unplace 26'
         execute 'sign place 26 name=QuickrPreviewLine line=' . l:entry.lnum . ' buffer=' . l:entry.bufnr
 
+        if g:quickr_preview_position == 'left' || g:quickr_preview_position == 'right'
+            " Go back to the empty window we used for splitting, and close it
+            wincmd p
+            wincmd c
+        endif
+
         " Go back to quickfix window
-        wincmd p
+        call win_gotoid(qf_win_id)
     endif
 endfunction
 " }}
